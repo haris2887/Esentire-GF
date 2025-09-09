@@ -368,9 +368,52 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
-        // Lead storage in memory (replace with your preferred method)
+        // ============================================================
+        // EMAILJS CONFIGURATION - EDIT THESE VALUES:
+        // ============================================================
+        const EMAILJS_CONFIG = {
+            serviceID: 'service_hhzoapo',              // REPLACE: service_gmail123
+            templateID: 'template_z0phkoo',            // REPLACE: template_abc456  
+            publicKey: 'SFjsGFbxMX6NtO5jE',              // REPLACE: user_a1B2c3D4e5F6g7H8i9
+            recipientEmail: 'haris.chaudhry@esentire.com' // REPLACE: john@esentire.com
+        };
+        // ============================================================
+        
+        // Initialize EmailJS
+        if (EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+            emailjs.init(EMAILJS_CONFIG.publicKey);
+        }
+        
+        // Send email notification function
+        function sendLeadEmail(leadData) {
+            const templateParams = {
+                from_name: leadData.name,
+                from_email: leadData.email,
+                phone: leadData.phone || 'Not provided',
+                timestamp: leadData.timestamp,
+                source: leadData.source,
+                to_email: EMAILJS_CONFIG.recipientEmail,
+                subject: `New Lead from ${leadData.name} - eSENTIRE`,
+                message: `
+New lead captured from QR code landing page:
+
+Name: ${leadData.name}
+Email: ${leadData.email}
+Phone: ${leadData.phone || 'Not provided'}
+Source: ${leadData.source}
+Time: ${new Date(leadData.timestamp).toLocaleString()}
+
+Services of Interest: VCISO, MDR (SOC), IR
+                `
+            };
+            
+            return emailjs.send(EMAILJS_CONFIG.serviceID, EMAILJS_CONFIG.templateID, templateParams);
+        }
+        
+        // Lead storage
         let leads = [];
         
         // Generate QR Code
@@ -446,14 +489,17 @@
             leads.push(formData);
             
             try {
-                // Send email notification
-                await sendLeadEmail(formData);
+                // Send email notification if EmailJS is configured
+                if (EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
+                    await sendLeadEmail(formData);
+                    console.log('Lead captured and email sent successfully:', formData);
+                } else {
+                    console.log('EmailJS not configured - lead captured locally:', formData);
+                }
                 
                 // Show success message
                 document.getElementById('leadForm').style.display = 'none';
                 document.getElementById('successMessage').style.display = 'block';
-                
-                console.log('Lead captured and email sent successfully:', formData);
                 
             } catch (error) {
                 console.error('Error sending email:', error);
