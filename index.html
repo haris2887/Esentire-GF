@@ -316,7 +316,7 @@
             <div class="header">
                 <div class="shield-icon">🛡️</div>
                 <div class="logo">eSENTIRE</div>
-                <div class="tagline">AI Powered Cybersecurity Solutions</div>
+                <div class="tagline">Advanced Cybersecurity Solutions for SMB & Mid-Market</div>
             </div>
             
             <div class="services">
@@ -348,11 +348,11 @@
             
             <div class="success-message" id="successMessage">
                 <h3>Thank you for your interest!</h3>
-                <p>Our cybersecurity experts will contact you within 24 hours to schedule a meeting.</p>
+                <p>Our cybersecurity experts will contact you within 24 hours to schedule your free security assessment.</p>
             </div>
             
             <div class="trust-indicators">
-                <div class="trust-text">Trusted by 2000+ businesses worldwide</div>
+                <div class="trust-text">Trusted by 500+ businesses worldwide</div>
                 <div class="features">
                     <div class="feature">🔒 24/7 Monitoring</div>
                     <div class="feature">⚡ Rapid Response</div>
@@ -513,8 +513,11 @@ Services of Interest: VCISO, MDR (SOC), IR
             submitButton.disabled = false;
         });
         
-        // Initialize QR code when page loads
-        window.addEventListener('load', generateQR);
+        // Initialize QR code and service badges when page loads
+        window.addEventListener('load', function() {
+            generateQR();
+            initializeServiceBadges();
+        });
         
         // Add some interactive effects
         document.querySelectorAll('input').forEach(input => {
