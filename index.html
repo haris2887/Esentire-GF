@@ -146,6 +146,28 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            user-select: none;
+            pointer-events: auto;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .service-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .service-badge.selected {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border-color: #2e7d32;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .service-badge.selected:hover {
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
         }
         
         .form-group {
@@ -274,16 +296,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
-        .url-display {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            font-size: 12px;
-            word-break: break-all;
-            color: #666;
-        }
-        
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -320,9 +332,9 @@
             </div>
             
             <div class="services">
-                <div class="service-badge">VCISO</div>
-                <div class="service-badge">MDR (SOC)</div>
-                <div class="service-badge">IR</div>
+                <div class="service-badge" data-service="VCISO">VCISO</div>
+                <div class="service-badge" data-service="MDR (SOC)">MDR (SOC)</div>
+                <div class="service-badge" data-service="IR">IR</div>
             </div>
             
             <form id="leadForm">
@@ -370,24 +382,48 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
-        // ============================================================
-        // EMAILJS CONFIGURATION - EDIT THESE VALUES:
-        // ============================================================
+        console.log("FRESH CODE LOADED - NO OLD FUNCTION REFERENCES!");
+        
+        // EmailJS Configuration
         const EMAILJS_CONFIG = {
-            serviceID: 'service_hhzoapo',              // REPLACE: service_gmail123
-            templateID: 'template_z0phkoo',            // REPLACE: template_abc456  
-            publicKey: 'SFjsGFbxMX6NtO5jE',            // REPLACE: user_a1B2c3D4e5F6g7H8i9
-            recipientEmail: 'haris.chaudhry@esentire.com' // REPLACE: john@esentire.com
+            serviceID: 'service_hhzoapo',
+            templateID: 'template_z0phkoo',
+            publicKey: 'SFjsGFbxMX6NtO5jE',
+            recipientEmail: 'haris.chaudhry@esentire.com'
         };
-        // ============================================================
         
         // Initialize EmailJS
-        if (EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
-            emailjs.init(EMAILJS_CONFIG.publicKey);
+        emailjs.init(EMAILJS_CONFIG.publicKey);
+        
+        // Global variables
+        let leads = [];
+        let selectedServices = [];
+        
+        // Toggle service selection
+        function toggleService(serviceName, element) {
+            console.log('Toggling service:', serviceName);
+            
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                selectedServices = selectedServices.filter(s => s !== serviceName);
+                console.log('Deselected:', serviceName);
+            } else {
+                element.classList.add('selected');
+                if (!selectedServices.includes(serviceName)) {
+                    selectedServices.push(serviceName);
+                }
+                console.log('Selected:', serviceName);
+            }
+            
+            console.log('All selected services:', selectedServices);
         }
         
-        // Send email notification function
+        // Send email function
         function sendLeadEmail(leadData) {
+            const services = leadData.selectedServices.length > 0 ? 
+                leadData.selectedServices.join(', ') : 
+                'All services (VCISO, MDR (SOC), IR)';
+            
             const templateParams = {
                 from_name: leadData.name,
                 from_email: leadData.email,
@@ -405,27 +441,22 @@ Phone: ${leadData.phone || 'Not provided'}
 Source: ${leadData.source}
 Time: ${new Date(leadData.timestamp).toLocaleString()}
 
-Services of Interest: VCISO, MDR (SOC), IR
+Services of Interest: ${services}
                 `
             };
             
             return emailjs.send(EMAILJS_CONFIG.serviceID, EMAILJS_CONFIG.templateID, templateParams);
         }
         
-        // Lead storage
-        let leads = [];
-        
         // Generate QR Code
         function generateQR() {
             const currentUrl = window.location.href;
             
             try {
-                // Create QR code using qrcode-generator library
                 const qr = qrcode(0, 'M');
                 qr.addData(currentUrl);
                 qr.make();
                 
-                // Create canvas and draw QR code
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 const moduleCount = qr.getModuleCount();
@@ -434,11 +465,9 @@ Services of Interest: VCISO, MDR (SOC), IR
                 
                 canvas.width = canvas.height = (moduleCount * cellSize) + (margin * 2);
                 
-                // Fill background
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Draw QR code
                 ctx.fillStyle = '#1e3c72';
                 for (let row = 0; row < moduleCount; row++) {
                     for (let col = 0; col < moduleCount; col++) {
@@ -453,7 +482,6 @@ Services of Interest: VCISO, MDR (SOC), IR
                     }
                 }
                 
-                // Add canvas to container
                 const qrContainer = document.getElementById('qrcode');
                 qrContainer.innerHTML = '';
                 qrContainer.appendChild(canvas);
@@ -464,70 +492,70 @@ Services of Interest: VCISO, MDR (SOC), IR
             }
         }
         
-        // Handle form submission
-        document.getElementById('leadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - setting up everything...');
             
-            // Show loading state
-            const submitButton = document.querySelector('.cta-button');
-            const originalText = submitButton.textContent;
-            submitButton.textContent = 'Sending...';
-            submitButton.disabled = true;
+            // Setup service badges
+            const badges = document.querySelectorAll('.service-badge');
+            console.log('Found service badges:', badges.length);
             
-            // Get form data
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                timestamp: new Date().toISOString(),
-                source: 'QR Code Landing Page'
-            };
+            badges.forEach(function(badge) {
+                badge.onclick = function() {
+                    const service = this.getAttribute('data-service');
+                    toggleService(service, this);
+                };
+                console.log('Setup badge:', badge.textContent);
+            });
             
-            // Store lead (backup)
-            leads.push(formData);
-            
-            try {
-                // Send email notification if EmailJS is configured
-                if (EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
-                    await sendLeadEmail(formData);
-                    console.log('Lead captured and email sent successfully:', formData);
-                } else {
-                    console.log('EmailJS not configured - lead captured locally:', formData);
-                }
-                
-                // Show success message
-                document.getElementById('leadForm').style.display = 'none';
-                document.getElementById('successMessage').style.display = 'block';
-                
-            } catch (error) {
-                console.error('Error sending email:', error);
-                
-                // Show error message but still capture lead
-                alert('Thank you for your interest! We have received your information and will contact you soon.');
-                document.getElementById('leadForm').style.display = 'none';
-                document.getElementById('successMessage').style.display = 'block';
+            // Setup form submission
+            const form = document.getElementById('leadForm');
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const submitButton = document.querySelector('.cta-button');
+                    const originalText = submitButton.textContent;
+                    submitButton.textContent = 'Sending...';
+                    submitButton.disabled = true;
+                    
+                    const formData = {
+                        name: document.getElementById('name').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        selectedServices: selectedServices,
+                        timestamp: new Date().toISOString(),
+                        source: 'QR Code Landing Page'
+                    };
+                    
+                    leads.push(formData);
+                    
+                    try {
+                        await sendLeadEmail(formData);
+                        console.log('Lead captured and email sent:', formData);
+                        
+                        document.getElementById('leadForm').style.display = 'none';
+                        document.getElementById('successMessage').style.display = 'block';
+                        
+                    } catch (error) {
+                        console.error('Error sending email:', error);
+                        alert('Thank you for your interest! We have received your information and will contact you soon.');
+                        document.getElementById('leadForm').style.display = 'none';
+                        document.getElementById('successMessage').style.display = 'block';
+                    }
+                    
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                });
             }
             
-            // Reset button state
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
+            console.log('All setup complete!');
         });
         
-        // Initialize QR code and service badges when page loads
+        // Generate QR when page loads
         window.addEventListener('load', function() {
+            console.log('Page loaded - generating QR code...');
             generateQR();
-            initializeServiceBadges();
-        });
-        
-        // Add some interactive effects
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'translateX(5px)';
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'translateX(0)';
-            });
         });
     </script>
 </body>
