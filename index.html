@@ -363,7 +363,6 @@
             <div class="qr-section">
                 <div class="qr-title">Share This Form - QR Code:</div>
                 <div id="qrcode"></div>
-                <div class="url-display" id="currentUrl"></div>
             </div>
         </div>
     </div>
@@ -377,7 +376,7 @@
         const EMAILJS_CONFIG = {
             serviceID: 'service_hhzoapo',              // REPLACE: service_gmail123
             templateID: 'template_z0phkoo',            // REPLACE: template_abc456  
-            publicKey: 'SFjsGFbxMX6NtO5jE',              // REPLACE: user_a1B2c3D4e5F6g7H8i9
+            publicKey: 'SFjsGFbxMX6NtO5jE',            // REPLACE: user_a1B2c3D4e5F6g7H8i9
             recipientEmail: 'haris.chaudhry@esentire.com' // REPLACE: john@esentire.com
         };
         // ============================================================
@@ -419,7 +418,6 @@ Services of Interest: VCISO, MDR (SOC), IR
         // Generate QR Code
         function generateQR() {
             const currentUrl = window.location.href;
-            document.getElementById('currentUrl').textContent = currentUrl;
             
             try {
                 // Create QR code using qrcode-generator library
